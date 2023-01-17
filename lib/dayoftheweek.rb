@@ -1,11 +1,32 @@
-#https://rubyapi.org/3.1/o/date#method-i-wday
+require 'date'
+require 'csv'
 
-#Open the CSV file
-#for each row, Get the RegDate
-#Objective is to extract each day of the week
-#2/2/09 11:29, 11/12/08 13:30
-#Day = "11/12/08 11:29".split("/")[1]
-#Month = "11/12/08 11:29".split("/")[0]
-#Year = 20.concat("11/12/08 11:29".split("/")[2].split(" ")[0]")
-#Date.new(Year, month, day).wday
-#Hash.new(0), if the day is not in the hash, add it and increment the value by 1
+def fix_format(str_date)
+  extracted_date = Date.strptime(str_date, "%m/%d/%Y").to_s
+  fix_year = "2" + extracted_date[1..extracted_date.length]
+  Date.strptime(fix_year, "%Y-%m-%d")
+end
+
+def extract_day(from_date)
+  days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+  day_number = from_date.wday
+  days[day_number]
+end
+
+contents = CSV.open("event_attendees.csv",
+  headers: true,
+  header_converters: :symbol
+)
+
+day_hash = Hash.new(0)
+
+contents.each do |row|
+  fixed = fix_format(row[:regdate])
+  day = extract_day(fixed)
+
+  day_hash[day] += 1
+end
+
+day_hash.each do |key, val|
+  puts "On #{key}, #{val} registered"
+end
